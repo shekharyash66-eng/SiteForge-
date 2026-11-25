@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SiteForge — Offline Website Builder</title>
+    <meta
+      name="description"
+      content="Offline-first 12-step template website builder PWA with 288 templates, multi-page export, SEO power pack, image studio, brand studio, and live site health scoring."
+    />
+    <meta property="og:title" content="SiteForge — Offline Website Builder" />
+    <meta
+      property="og:description"
+      content="Offline-first 12-step template website builder PWA with 288 templates, multi-page export, SEO power pack, image studio, brand studio, and live site health scoring."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#F5F2EB" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="SiteForge" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#wizard-main">Skip to builder</a>
+
+    <!-- Non-intrusive Status Banners (SW Update / 7-day Backup Reminder / Quota Warning) -->
+    <div id="banner-sw-update" class="top-banner is-info" role="status" hidden>
+      <span>A new version of SiteForge is ready offline.</span>
+      <div class="top-banner-actions">
+        <button type="button" id="btn-sw-reload" class="btn btn-primary btn-sm">Update available — Reload</button>
+        <button type="button" class="btn btn-ghost btn-sm" data-dismiss-banner="banner-sw-update">Later</button>
+      </div>
+    </div>
+
+    <div id="banner-backup-reminder" class="top-banner is-warn" role="status" hidden>
+      <span>More than 7 days since your last full backup. Save a portable <code>.siteforge</code> archive to keep your projects safe.</span>
+      <div class="top-banner-actions">
+        <button type="button" id="btn-banner-backup-now" class="btn btn-primary btn-sm">Back up now</button>
+        <button type="button" class="btn btn-ghost btn-sm" data-dismiss-banner="banner-backup-reminder">Dismiss</button>
+      </div>
+    </div>
+
+    <div id="banner-quota-error" class="top-banner is-danger" role="alert" hidden>
+      <span id="quota-error-msg">Browser storage is nearly full. Back up your projects now or remove large unused images.</span>
+      <div class="top-banner-actions">
+        <button type="button" id="btn-quota-backup-now" class="btn btn-primary btn-sm">Back up now</button>
+        <button type="button" class="btn btn-ghost btn-sm" data-dismiss-banner="banner-quota-error">Dismiss</button>
+      </div>
+    </div>
+
+    <header class="app-header">
+      <div class="header-left">
+        <a href="./" class="app-brand" aria-label="SiteForge home">
+          <span class="app-logo-mark" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2.5L21 7.75V16.25L12 21.5L3 16.25V7.75L12 2.5Z" stroke="currentColor" stroke-width="1.4" />
+              <path d="M12 6.8L16.5 9.4V14.6L12 17.2L7.5 14.6V9.4L12 6.8Z" fill="var(--sf-accent)" fill-opacity="0.18" stroke="var(--sf-accent)" stroke-width="1.25" />
+              <circle cx="12" cy="12" r="1.6" fill="var(--sf-accent)" />
+            </svg>
+          </span>
+          <span class="app-brand-lockup">
+            <span class="app-brand-name">SiteForge</span>
+            <span class="app-subtitle">Editorial Site Studio</span>
+          </span>
+        </a>
+
+        <span class="header-vrule" aria-hidden="true"></span>
+
+        <button type="button" id="btn-projects" class="project-pill-trigger" title="Switch or manage saved projects">
+          <span class="project-trigger-kicker">Project</span>
+          <span id="active-project-label" class="project-trigger-name">My First Site</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+        </button>
+
+        <span class="header-meta-strip">
+          <span
+            id="connectivity-badge"
+            class="status-indicator"
+            role="status"
+            aria-live="polite"
+            title="Connection and offline cache status"
+          >
+            Online
+          </span>
+        </span>
+      </div>
+
+      <div class="header-center" role="toolbar" aria-label="Document actions">
+        <div class="header-btn-cluster">
+          <button type="button" id="btn-undo" class="header-action-btn" title="Undo (Ctrl+Z)" disabled>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" /></svg>
+            <span data-i18n="undo">Undo</span>
+          </button>
+          <button type="button" id="btn-redo" class="header-action-btn" title="Redo (Ctrl+Y)" disabled>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 7v6h-6" /><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" /></svg>
+            <span data-i18n="redo">Redo</span>
+          </button>
+        </div>
+
+        <span class="header-vrule" aria-hidden="true"></span>
+
+        <div class="header-btn-cluster">
+          <button type="button" id="btn-save-project" class="header-action-btn" title="Save project as JSON file">
+            <span>Save</span>
+          </button>
+          <button type="button" id="btn-open-project" class="header-action-btn" title="Open saved JSON, HTML, or ZIP project">
+            <span>Open</span>
+          </button>
+          <button type="button" id="btn-quick-demo" class="header-action-btn is-demo-trigger" title="Instantly preview a complete agency demo without overwriting your project">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4" /></svg>
+            <span>Quick Demo</span>
+          </button>
+          <button type="button" id="btn-reset" class="header-action-btn is-subtle-accent" title="Reset active project">
+            <span data-i18n="resetAll">Start Over</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button type="button" id="btn-quick-theme" class="header-utility-btn" title="Switch Light / Dark studio theme" aria-label="Toggle dark mode">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+          <span id="quick-theme-label">Dark</span>
+        </button>
+
+        <div class="header-dropdown">
+          <button type="button" id="btn-more-tools" class="header-utility-btn is-bordered" aria-haspopup="menu" aria-expanded="false" aria-controls="header-more-menu">
+            <span>Studio</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+          </button>
+          <div id="header-more-menu" class="header-dropdown-menu" role="menu" hidden>
+            <div class="dropdown-section-label">Libraries</div>
+            <button type="button" id="btn-gallery" class="dropdown-item" role="menuitem">
+              <span class="dropdown-item-label" data-i18n="gallery">Template Gallery</span>
+              <span class="dropdown-item-meta">288</span>
+            </button>
+            <button type="button" id="btn-presets" class="dropdown-item" role="menuitem">
+              <span class="dropdown-item-label" data-i18n="presets">Starter Presets</span>
+              <span class="dropdown-item-meta">10</span>
+            </button>
+            <button type="button" id="btn-library" class="dropdown-item" role="menuitem">
+              <span class="dropdown-item-label" data-i18n="library">My Published Sites</span>
+              <span id="library-count" class="dropdown-item-meta tabular-num">0</span>
+            </button>
+            <button type="button" id="btn-health-badge" class="dropdown-item health-badge is-good" role="menuitem" title="Live Site Health Score (click to inspect in Step 12)">
+              <span class="dropdown-item-label">Site Health</span>
+              <span class="dropdown-item-meta"><strong id="health-badge-grade">B</strong> &middot; <span id="health-badge-score" class="tabular-num">85</span></span>
+            </button>
+            <div class="dropdown-divider" role="separator"></div>
+            <div class="dropdown-section-label">Workspace</div>
+            <button type="button" id="btn-cmd-palette" class="dropdown-item" role="menuitem">
+              <span class="dropdown-item-label">Command Palette</span>
+              <span class="dropdown-item-meta">Ctrl+K</span>
+            </button>
+            <button type="button" id="btn-history" class="dropdown-item" role="menuitem">
+              <span class="dropdown-item-label">Version History</span>
+            </button>
+            <button type="button" id="btn-surprise-all" class="dropdown-item" role="menuitem">
+              <span class="dropdown-item-label" data-i18n="surpriseAll">Surprise Me</span>
+            </button>
+            <button type="button" id="btn-demo-mode" class="dropdown-item" role="menuitem">
+              <span class="dropdown-item-label">Demo Mode</span>
+            </button>
+            <div class="dropdown-divider" role="separator"></div>
+            <button type="button" id="btn-settings" class="dropdown-item" role="menuitem">
+              <span class="dropdown-item-label" data-i18n="settings">Settings &amp; Storage</span>
+            </button>
+            <button type="button" id="btn-help" class="dropdown-item" role="menuitem">
+              <span class="dropdown-item-label">Help Center &amp; Tour</span>
+            </button>
+            <button type="button" id="btn-whats-new" class="dropdown-item" role="menuitem">
+              <span class="dropdown-item-label">What&rsquo;s New</span>
+            </button>
+            <button type="button" id="btn-shortcuts" class="dropdown-item" role="menuitem">
+              <span class="dropdown-item-label">Keyboard Shortcuts</span>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" id="btn-install-app" class="header-install-btn" hidden title="Install SiteForge for offline use">
+          <span data-i18n="installApp">Install App</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Safe Temporary Quick Demo Mode Banner -->
+    <div id="banner-demo-mode" class="demo-mode-banner" role="status" aria-live="polite" hidden>
+      <div class="demo-mode-banner-left">
+        <span class="demo-mode-tag">DEMO MODE</span>
+        <span class="demo-mode-text">
+          Presenting <strong>Northstar Studio</strong> across all 12 steps. Your real project is safely preserved and never overwritten.
+        </span>
+      </div>
+      <div class="demo-mode-banner-actions">
+        <a id="btn-demo-view-site" class="btn btn-secondary btn-sm" href="#" target="_blank" rel="noopener noreferrer">View Generated Website &nearr;</a>
+        <button type="button" id="btn-exit-demo" class="btn btn-primary btn-sm">Exit Demo</button>
+      </div>
+    </div>
+
+    <!-- Hidden file inputs -->
+    <input type="file" id="import-json-input" accept=".json,application/json" class="sr-only" aria-label="Import SiteForge JSON file" />
+    <input type="file" id="open-siteforge-input" accept=".html,.htm,.zip,.json,text/html,application/zip,application/json" class="sr-only" aria-label="Open exported HTML, ZIP, or JSON in SiteForge" />
+    <input type="file" id="restore-backup-input" accept=".siteforge,.zip,application/zip" class="sr-only" aria-label="Restore full SiteForge backup archive" />
+    <input type="file" id="import-theme-input" accept=".json,application/json" class="sr-only" aria-label="Import custom theme JSON" />
+
+    <!-- Mobile Pane Switcher & Compact Step Selector -->
+    <div class="mobile-tabs" role="tablist" aria-label="Workspace view">
+      <button type="button" id="tab-wizard" class="mobile-tab is-active" role="tab" aria-selected="true" aria-controls="wizard-pane" data-i18n="builderTab">Builder</button>
+      <button type="button" id="tab-preview" class="mobile-tab" role="tab" aria-selected="false" aria-controls="preview-pane" data-i18n="previewTab">Preview</button>
+    </div>
+
+    <div class="mobile-step-bar">
+      <label for="step-jump-select" class="sr-only">Jump directly to step</label>
+      <select id="step-jump-select" class="step-jump-select" title="Jump to any step"></select>
+      <span id="step-counter" class="mono-label">Step 1 of 12</span>
+    </div>
+
+    <main id="wizard-main" class="workspace">
+      <!-- LEFT COLUMN: Compact Editorial Contents Rail -->
+      <aside id="step-rail" class="step-rail" aria-label="Step navigation">
+        <div class="rail-header">
+          <span class="rail-title">Contents</span>
+          <span id="completion-counter" class="rail-completion tabular-num">0/12</span>
+        </div>
+
+        <nav id="step-dots" class="step-nav-list" aria-label="12 builder steps"></nav>
+
+        <div class="step-rail-footer">
+          <span class="rail-footer-label">Autosave</span>
+          <span id="autosave-hint" class="autosave-hint">Saved</span>
+        </div>
+      </aside>
+
+      <!-- CENTER COLUMN: Refined Editorial Canvas -->
+      <section id="wizard-pane" class="wizard-pane" aria-label="Website builder editor">
+        <form id="wizard-form" class="wizard-card" novalidate>
+          <div class="folio-header">
+            <div class="folio-topline">
+              <span id="editorial-step-kicker" class="folio-kicker">Chapter 01 of 12</span>
+              <span id="editorial-step-fraction" class="folio-fraction tabular-num">01 / 12</span>
+            </div>
+
+            <div class="folio-progress-wrap">
+              <div id="progress-ticks" class="progress-ticks" role="group" aria-label="Step progress"></div>
+              <div class="progress-track sr-only" role="progressbar" aria-label="Wizard progress" aria-valuemin="1" aria-valuemax="12" aria-valuenow="1" id="progress-track">
+                <div id="progress-fill" class="progress-fill"></div>
+              </div>
+            </div>
+
+            <div class="folio-title-block">
+              <h1 id="editorial-step-title" class="step-title">Site name</h1>
+              <p id="editorial-step-hint" class="step-hint"></p>
+            </div>
+          </div>
+
+          <div class="step-tools-bar" aria-label="Step assistants">
+            <span class="tools-bar-label">Quick fill</span>
+            <div class="tools-bar-actions">
+              <button type="button" id="btn-copy-bank" class="editorial-util-btn" title="Open deterministic Smart Copy suggestions for this step">
+                <span>Smart Copy</span>
+              </button>
+              <button type="button" id="btn-write-for-me" class="editorial-util-btn" title="Fill this step with smart starter copy matching your site type and tone">
+                <span>Write for me</span>
+              </button>
+              <button type="button" id="btn-surprise-step" class="editorial-util-btn" title="Pick a random valid setup for this step">
+                <span data-i18n="surpriseStep">Surprise me</span>
+              </button>
+              <button type="button" id="btn-reset-step" class="editorial-util-btn is-muted" title="Reset only this step to defaults">
+                <span data-i18n="resetStep">Reset step</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="step-content" class="step-content"></div>
+
+          <div class="wizard-nav">
+            <button type="button" id="btn-back" class="btn btn-secondary" data-i18n="back">Back</button>
+            <div class="wizard-nav-right">
+              <button type="button" id="btn-jump-review" class="btn btn-ghost" hidden data-i18n="backToReview">Back to Review</button>
+              <button type="submit" id="btn-next" class="btn btn-primary" data-i18n="next">Next &rarr;</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- RIGHT COLUMN: Distinct Framed Studio Browser Environment -->
+      <section id="preview-pane" class="preview-pane" aria-label="Live website preview">
+        <div class="preview-toolbar">
+          <div class="preview-title-group">
+            <span class="preview-title-label" data-i18n="livePreview">Live Preview</span>
+            <span class="meta-dot" aria-hidden="true">&middot;</span>
+            <span id="preview-template-label" class="preview-meta">Classic &middot; Light Clean</span>
+          </div>
+
+          <div class="preview-device-segmented" role="group" aria-label="Preview viewport width">
+            <button type="button" class="device-seg-btn is-active" data-preview-preset="desktop" aria-pressed="true">Desktop</button>
+            <button type="button" class="device-seg-btn" data-preview-preset="tablet" aria-pressed="false">Tablet</button>
+            <button type="button" class="device-seg-btn" data-preview-preset="mobile" aria-pressed="false">Mobile</button>
+          </div>
+        </div>
+
+        <div id="preview-stage" class="preview-stage">
+          <div id="preview-zoom-wrap" class="preview-zoom-wrap">
+            <div id="preview-frame-shell" class="preview-frame-shell">
+              <div class="preview-browser-bar">
+                <div class="browser-window-dots" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                </div>
+
+                <div class="browser-address-bar">
+                  <span id="preview-browser-filename" class="browser-filename">siteforge-site.html</span>
+                  <span class="browser-addr-sep" aria-hidden="true">/</span>
+                  <span id="preview-browser-width" class="browser-width">1280 px</span>
+                </div>
+
+                <div class="browser-bar-tools">
+                  <label for="preview-page-select" class="sr-only">Preview page</label>
+                  <select id="preview-page-select" class="browser-select" title="Switch page in multi-page preview" hidden></select>
+
+                  <label for="preview-device-select" class="sr-only">Custom viewport size</label>
+                  <select id="preview-device-select" class="browser-select" title="Custom preview device width"></select>
+
+                  <label for="preview-zoom-select" class="sr-only">Preview zoom</label>
+                  <select id="preview-zoom-select" class="browser-select" title="Preview zoom level">
+                    <option value="50">50%</option>
+                    <option value="75">75%</option>
+                    <option value="100" selected>100%</option>
+                  </select>
+
+                  <button type="button" id="btn-preview-rotate" class="browser-tool-btn" title="Rotate viewport orientation" aria-label="Rotate viewport" aria-pressed="false">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1.5" /><line x1="12" y1="17.5" x2="12.01" y2="17.5" /></svg>
+                  </button>
+
+                  <button type="button" id="btn-preview-mode" class="browser-tool-btn" title="Toggle preview Light / Dark" aria-label="Toggle preview Light or Dark">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>
+                  </button>
+
+                  <a id="btn-open-preview-tab" class="browser-tool-btn" href="#" target="_blank" rel="noopener noreferrer" title="Open live preview in a new tab" aria-label="Open preview in new tab">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 3h7v7" /><path d="M10 14L21 3" /><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" /></svg>
+                  </a>
+                </div>
+              </div>
+              <iframe id="preview-frame" class="preview-frame" title="Generated website live preview" sandbox="allow-scripts"></iframe>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 288 Template Gallery Modal -->
+    <div id="modal-gallery" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-xl" role="dialog" aria-modal="true" aria-labelledby="gallery-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">CURATED EDITORIAL COLLECTION · 288 TOTAL COMBINATIONS</span>
+            <h2 id="gallery-title">Template Gallery</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-gallery" aria-label="Close gallery">&times;</button>
+        </div>
+        <div class="gallery-filters">
+          <input type="search" id="gallery-search" class="field-input" placeholder="Search style, layout, or theme (e.g. Paper, Magazine, Harbor, Forest)..." aria-label="Search templates" />
+          <select id="gallery-filter-layout" class="preview-select" aria-label="Filter by layout"></select>
+          <select id="gallery-filter-theme" class="preview-select" aria-label="Filter by theme"></select>
+          <select id="gallery-filter-tone" class="preview-select" aria-label="Filter by light or dark">
+            <option value="all">All Tones</option>
+            <option value="light">Light Themes</option>
+            <option value="dark">Dark Themes</option>
+          </select>
+        </div>
+        <div id="gallery-body" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- 10 Starter Presets Modal -->
+    <div id="modal-presets" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="presets-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">ONE-CLICK STARTERS</span>
+            <h2 id="presets-title">Starter Presets</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-presets" aria-label="Close presets">&times;</button>
+        </div>
+        <div id="presets-body" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Multi-Project Manager Modal -->
+    <div id="modal-projects" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="projects-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">INDEXEDDB WORKSPACE</span>
+            <h2 id="projects-title">Saved Projects &amp; Round-Trip Open</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-projects" aria-label="Close projects">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="inline-bar">
+            <button type="button" id="btn-new-project" class="btn btn-primary">+ New Project</button>
+            <button type="button" id="btn-open-siteforge-modal" class="btn btn-secondary">Open .html / .zip</button>
+            <button type="button" id="btn-export-json-modal" class="btn btn-secondary">Export JSON</button>
+            <button type="button" id="btn-import-json-modal" class="btn btn-secondary">Import JSON</button>
+          </div>
+          <p class="field-helper" style="margin:0.55rem 0 0;">Any SiteForge-exported <code>.html</code> or <code>.zip</code> file can be reopened here to keep editing right where you left off.</p>
+          <div id="projects-list" class="library-grid" style="margin-top:0.85rem;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Published Sites Library Modal (IndexedDB) -->
+    <div id="modal-library" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="library-modal-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">INDEXEDDB OFFLINE LIBRARY</span>
+            <h2 id="library-modal-title">My Published Sites</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-library" aria-label="Close library">&times;</button>
+        </div>
+        <div id="library-list" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- App Settings, Storage & Data, Self-Test Modal -->
+    <div id="modal-settings" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">PREFERENCES, STORAGE &amp; DIAGNOSTICS</span>
+            <h2 id="settings-title">SiteForge Settings</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-settings" aria-label="Close settings">&times;</button>
+        </div>
+        <div id="settings-body" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Offline Self-Test Suite Modal (Phase A0) -->
+    <div id="modal-selftest" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="selftest-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">OFFLINE VERIFICATION SUITE</span>
+            <h2 id="selftest-title">SiteForge Self-Test</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-selftest" aria-label="Close self-test">&times;</button>
+        </div>
+        <div id="selftest-body" class="modal-body"></div>
+        <div class="modal-footer">
+          <button type="button" id="btn-rerun-selftest" class="btn btn-secondary">Run Again</button>
+          <button type="button" id="btn-copy-selftest" class="btn btn-primary">Copy Report</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Studio Modal (Phase A4) -->
+    <div id="modal-image-studio" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="img-studio-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">OFFLINE CANVAS IMAGE STUDIO</span>
+            <h2 id="img-studio-title">Crop, Compress &amp; Focal Point</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-image-studio" aria-label="Close image studio">&times;</button>
+        </div>
+        <div id="image-studio-body" class="modal-body"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="modal-image-studio">Cancel</button>
+          <button type="button" id="btn-img-studio-apply" class="btn btn-primary">Save Optimized Image</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Smart Copy Bank Modal (Phase B1) -->
+    <div id="modal-copy-bank" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="copy-bank-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">DETERMINISTIC SMART COPY BANK · 0% AI</span>
+            <h2 id="copy-bank-title">Smart Copy Suggestions</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-copy-bank" aria-label="Close smart copy">&times;</button>
+        </div>
+        <div id="copy-bank-body" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Brand Studio Modal (Phase B2) -->
+    <div id="modal-brand-studio" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="brand-studio-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">BRAND STUDIO · CONTRAST-CHECKED HARMONIES</span>
+            <h2 id="brand-studio-title">Brand Palette, Logo Extractor &amp; Font Pairings</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-brand-studio" aria-label="Close brand studio">&times;</button>
+        </div>
+        <div id="brand-studio-body" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Go-Live Guide & QR Kit Modal (Phase A7 + B3) -->
+    <div id="modal-golive" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="golive-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">GO-LIVE KIT &amp; OFFLINE QR STUDIO</span>
+            <h2 id="golive-title">Publish Online &amp; QR Codes</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-golive" aria-label="Close go-live guide">&times;</button>
+        </div>
+        <div id="golive-body" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Version History Snapshots Modal (Phase C3) -->
+    <div id="modal-history" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="history-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">VERSION HISTORY · UP TO 30 SNAPSHOTS</span>
+            <h2 id="history-title">Project Snapshots</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-history" aria-label="Close version history">&times;</button>
+        </div>
+        <div id="history-body" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Demo & Presentation Mode Modal (Phase C2) -->
+    <div id="modal-demo" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="demo-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">DEMO &amp; PRESENTER TOOLKIT</span>
+            <h2 id="demo-title">Demo Mode</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-demo" aria-label="Close demo mode">&times;</button>
+        </div>
+        <div id="demo-body" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Command Palette Modal (Phase C3 · Ctrl+K) -->
+    <div id="modal-cmd" class="modal-backdrop" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="cmd-title">
+        <div class="modal-header" style="padding:0.75rem 1rem;">
+          <h2 id="cmd-title" class="sr-only">Command Palette</h2>
+          <input type="search" id="cmd-input" class="field-input" placeholder="Jump to any step, modal, or action..." autocomplete="off" />
+        </div>
+        <div id="cmd-list" class="cmd-list"></div>
+      </div>
+    </div>
+
+    <!-- Offline Help Center Modal (Phase C3) -->
+    <div id="modal-help" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">OFFLINE KNOWLEDGE BASE</span>
+            <h2 id="help-title">Help Center &amp; Glossary</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-help" aria-label="Close help center">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="search" id="help-search" class="field-input" placeholder="Search offline help (e.g. SEO, ZIP, Multi-page, Contrast, UPI, Backup)..." />
+          <div id="help-body" class="help-list" style="margin-top:0.85rem;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- What's New Modal -->
+    <div id="modal-whats-new" class="modal-backdrop" hidden>
+      <div class="modal-panel modal-panel-lg" role="dialog" aria-modal="true" aria-labelledby="whats-new-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">SITEFORGE UPGRADE</span>
+            <h2 id="whats-new-title">What&rsquo;s New in SiteForge</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-whats-new" aria-label="Close what's new">&times;</button>
+        </div>
+        <div id="whats-new-body" class="modal-body"></div>
+        <div class="modal-footer">
+          <button type="button" id="btn-start-tour-from-new" class="btn btn-secondary">Take 6-Step Guided Tour</button>
+          <button type="button" class="btn btn-primary" data-close-modal="modal-whats-new">Got it</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6-Step First-Run Guided Tour Modal (Phase C3) -->
+    <div id="modal-tour" class="modal-backdrop" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+        <div class="modal-header">
+          <div>
+            <span id="tour-step-badge" class="mono-label">TOUR 1 OF 6</span>
+            <h2 id="tour-title">Welcome to SiteForge</h2>
+          </div>
+          <button type="button" class="icon-close-btn" id="btn-tour-skip-x" aria-label="Skip guided tour">&times;</button>
+        </div>
+        <div id="tour-body" class="modal-body"></div>
+        <div class="modal-footer" style="justify-content:space-between;">
+          <button type="button" id="btn-tour-skip" class="btn btn-ghost">Skip tour</button>
+          <div class="inline-bar">
+            <button type="button" id="btn-tour-prev" class="btn btn-secondary btn-sm">Previous</button>
+            <button type="button" id="btn-tour-next" class="btn btn-primary btn-sm">Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="modal-shortcuts" class="modal-backdrop" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title">
+        <div class="modal-header">
+          <div>
+            <span class="mono-label">PRODUCTIVITY</span>
+            <h2 id="shortcuts-title">Keyboard Shortcuts</h2>
+          </div>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-shortcuts" aria-label="Close shortcuts">&times;</button>
+        </div>
+        <div class="modal-body">
+          <dl class="shortcuts-list">
+            <div><dt><kbd>Ctrl</kbd> + <kbd>K</kbd></dt><dd>Open Command Palette</dd></div>
+            <div><dt><kbd>Alt</kbd> + <kbd>&rarr;</kbd></dt><dd>Next step</dd></div>
+            <div><dt><kbd>Alt</kbd> + <kbd>&larr;</kbd></dt><dd>Previous step</dd></div>
+            <div><dt><kbd>Ctrl</kbd> + <kbd>Z</kbd></dt><dd>Undo (up to 50 steps)</dd></div>
+            <div><dt><kbd>Ctrl</kbd> + <kbd>Y</kbd></dt><dd>Redo</dd></div>
+            <div><dt><kbd>Ctrl</kbd> + <kbd>S</kbd></dt><dd>Download single .html</dd></div>
+            <div><dt><kbd>Alt</kbd> + <kbd>P</kbd></dt><dd>Toggle preview pane</dd></div>
+            <div><dt><kbd>Click preview</kbd></dt><dd>Jump directly to that text field</dd></div>
+            <div><dt><kbd>Esc</kbd></dt><dd>Close active dialog</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Dialog Modal -->
+    <div id="modal-confirm" class="modal-backdrop" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+        <div class="modal-header">
+          <h2 id="confirm-modal-title">Confirm Action</h2>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-confirm" aria-label="Close dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="confirm-modal-message" class="modal-copy"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="confirm-cancel-btn" class="btn btn-secondary">Cancel</button>
+          <button type="button" id="confirm-ok-btn" class="btn btn-danger">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Input Prompt Modal -->
+    <div id="modal-prompt" class="modal-backdrop" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="prompt-modal-title">
+        <div class="modal-header">
+          <h2 id="prompt-modal-title">Rename</h2>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-prompt" aria-label="Close dialog">&times;</button>
+        </div>
+        <form id="prompt-form">
+          <div class="modal-body">
+            <label for="prompt-input" id="prompt-label" class="field-label">New name</label>
+            <input id="prompt-input" type="text" class="field-input" style="margin-top:0.45rem;" maxlength="60" />
+            <div id="prompt-error" class="field-error" aria-live="polite" style="margin-top:0.35rem;"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="prompt-cancel-btn" class="btn btn-secondary">Cancel</button>
+            <button type="submit" id="prompt-ok-btn" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- iOS Install Guide Modal -->
+    <div id="modal-ios-install" class="modal-backdrop" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="ios-modal-title">
+        <div class="modal-header">
+          <h2 id="ios-modal-title">Install SiteForge on iOS</h2>
+          <button type="button" class="icon-close-btn" data-close-modal="modal-ios-install" aria-label="Close install instructions">&times;</button>
+        </div>
+        <div class="modal-body">
+          <ol class="ios-steps">
+            <li>Tap the <strong>Share</strong> button in Safari&rsquo;s toolbar.</li>
+            <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+            <li>Tap <strong>Add</strong> to launch SiteForge offline anytime.</li>
+          </ol>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-close-modal="modal-ios-install">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

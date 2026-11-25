@@ -1,0 +1,6 @@
+{
+  "name": "SiteForge",
+  "description": "Offline-first 12-step template website builder PWA. Answer 12 questions and get a finished, responsive website without writing any code.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
